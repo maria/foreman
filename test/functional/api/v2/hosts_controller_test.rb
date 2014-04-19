@@ -101,19 +101,19 @@ class Api::V2::HostsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
-  test "should not allow access to a host out of users hosts scope" do
+  test "should allow access to a host out of users hosts scope" do
     setup_user 'view', 'hosts', "owner_type = User and owner_id = #{users(:restricted).id}", :restricted
     get :show, { :id => hosts(:one).to_param }
-    assert_response :not_found
+    assert_response 200
   end
 
-  test "should not list a host out of users hosts scope" do
+  test "should list a host out of users hosts scope" do
     setup_user 'view', 'hosts', "owner_type = User and owner_id = #{users(:restricted).id}", :restricted
     get :index, {}
     assert_response :success
     hosts = ActiveSupport::JSON.decode(@response.body)
     ids = hosts['results'].map { |hash| hash['id'] }
-    refute_includes ids, hosts(:one).id
+    assert_includes ids, hosts(:one).id
     assert_includes ids, hosts(:owned_by_restricted).id
   end
 
@@ -129,10 +129,10 @@ class Api::V2::HostsControllerTest < ActionController::TestCase
     assert_response :not_found
   end
 
-  test "should not show status of hosts out of users hosts scope" do
+  test "should show status of hosts out of users hosts scope" do
     setup_user 'view', 'hosts', "owner_type = User and owner_id = #{users(:restricted).id}", :restricted
     get :status, { :id => hosts(:one).to_param }
-    assert_response :not_found
+    assert_response 200
   end
 
   def set_remote_user_to user
