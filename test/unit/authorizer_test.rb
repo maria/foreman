@@ -37,12 +37,12 @@ class AuthorizerTest < ActiveSupport::TestCase
     refute auth.can?(:view_domains)
   end
 
-  test "#can?(:view_hosts) is limited by particular user" do
+  test "#can?(:view_hosts) is not limited by particular user" do
     permission = Permission.find_by_name('view_hosts')
     filter     = FactoryGirl.create(:filter, :on_name_all, :role => @role, :permissions => [permission])
     auth       = Authorizer.new(FactoryGirl.create(:user))
 
-    refute auth.can?(:view_hosts)
+    assert auth.can?(:view_hosts)
   end
 
   test "#can?(:view_domains, @host) for unlimited filter" do
