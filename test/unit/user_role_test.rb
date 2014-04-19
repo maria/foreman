@@ -16,10 +16,10 @@ class UserRoleTest < ActiveSupport::TestCase
   test "cache user roles" do
     user             = FactoryGirl.create :user
     user_role        = FactoryGirl.create :user_user_role, :owner => user
-    cached_user_role = user.cached_user_roles.first
+    cached_user_roles = user.cached_user_roles
 
-    assert_equal user_role.role, cached_user_role.role
-    assert_equal user_role, cached_user_role.user_role
+    assert_equal user_role.role, cached_user_roles.second.role
+    assert_equal user.roles.first, cached_user_roles.first.role
   end
 
   test "cache usergroup roles" do
@@ -27,7 +27,7 @@ class UserRoleTest < ActiveSupport::TestCase
 
     users = @semiadmin_users + [@admin_user] + [@superadmin_user]
     users.each do |user|
-      cached_user_role = user.cached_user_roles.first
+      cached_user_role = user.cached_user_roles.second
       assert_equal user_role.role, cached_user_role.role
       assert_equal user_role, cached_user_role.user_role
     end
@@ -41,7 +41,7 @@ class UserRoleTest < ActiveSupport::TestCase
 
     users = @semiadmin_users + [@admin_user] + [@superadmin_user]
     users.each  do |user|
-      cached_user_role = user.cached_user_roles.first
+      cached_user_role = user.cached_user_roles.second
       assert_equal new_role, cached_user_role.role
     end
   end
@@ -53,13 +53,14 @@ class UserRoleTest < ActiveSupport::TestCase
 
     users = [@admin_user, @superadmin_user]
     users.each do |user|
-      cached_user_role = user.cached_user_roles.first
+      cached_user_role = user.cached_user_roles.second
       assert_equal user_role.role, cached_user_role.role
     end
 
     users = @semiadmin_users
     users.each do |user|
-      assert_empty user.cached_user_roles
+      assert_not_empty user.cached_user_roles
+      assert_equal user.cached_user_roles.length, 1
     end
   end
 
