@@ -94,7 +94,6 @@ class LookupKeyTest < ActiveSupport::TestCase
   def test_parameters_multiple_paths
      host = hosts(:one)
      host.hostgroup = hostgroups(:common)
-     host.environment = environments(:testing)
 
      host2 = hosts(:minimal)
      host2.hostgroup = hostgroups(:unusual)
@@ -108,7 +107,7 @@ class LookupKeyTest < ActiveSupport::TestCase
      puppetclass = Puppetclass.first
      as_admin do
        key    = LookupKey.create!(:key => "dns", :path => "environment,hostgroup \n hostgroup", :puppetclass => puppetclass, :default_value => default, :override=>true)
-       value1 = LookupValue.create!(:value => "v1", :match => "environment=testing,hostgroup=Common", :lookup_key => key)
+       value1 = LookupValue.create!(:value => "v1", :match => "hostgroup=Common", :lookup_key => key)
        value2 = LookupValue.create!(:value => "v2", :match => "hostgroup=Unusual", :lookup_key => key)
        host.puppetclasses << puppetclass
        host2.puppetclasses << puppetclass
@@ -138,4 +137,15 @@ class LookupKeyTest < ActiveSupport::TestCase
     assert lookup_keys(:complex).is_smart_class_parameter?
   end
 
+  test "when changed, an audit entry should be added" do
+    env = FactoryGirl.create(:environment)
+    pc = FactoryGirl.create(:puppetclass, :with_parameters, :environments => [env])
+    key = pc.class_params.first
+    assert_difference('Audit.count') do
+      key.override = true
+      key.default_value = "new default value"
+      key.save!
+    end
+    assert_equal pc.name, key.audits.last.associated_name
+  end
 end

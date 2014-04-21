@@ -91,6 +91,18 @@ class UserTest < ActiveSupport::TestCase
     assert_not_equal last_login, User.find(user.id).last_login_on
   end
 
+  test "ldap user attribute should be updated when not blank" do
+    AuthSourceLdap.any_instance.stubs(:authenticate).returns({ :firstname => "Foo" })
+    u = User.try_to_login("foo", "password")
+    assert_equal u.firstname, "Foo"
+  end
+
+  test "ldap user attribute should not be updated when blank" do
+    AuthSourceLdap.any_instance.stubs(:authenticate).returns({ :mail => "" })
+    u = User.try_to_login("foo", "password")
+    assert_equal u.mail, "foo@bar.com"
+  end
+
   test "should not be able to delete the admin account" do
     assert !User.find_by_login("admin").destroy
   end
@@ -450,5 +462,54 @@ class UserTest < ActiveSupport::TestCase
     u = FactoryGirl.build(:user)
     assert_equal 'authorizer was asked', u.can?(:view_hosts_or_whatever_you_ask)
   end
+
+  test 'default taxonomy inclusion validator' do
+    users(:one).default_location = Location.first
+    users(:one).default_organization = Organization.first
+
+    refute users(:one).valid?
+    assert users(:one).errors.messages.has_key? :default_location
+    assert users(:one).errors.messages.has_key? :default_organization
+  end
+
+  test 'any taxonomy works as default taxonomy for admins' do
+    users(:one).update_attribute(:admin, true)
+    users(:one).default_location = Location.first
+
+    assert users(:one).valid?
+  end
+
+  test "return location and child ids for non-admin user" do
+    as_user :one do
+      in_taxonomy :location1 do
+        assert User.current.locations << Location.current
+        assert child = Location.create!(:name => 'child location', :parent_id => Location.current.id)
+        assert_equal [Location.current.id, child.id].sort, User.current.location_and_child_ids
+      end
+    end
+  end
+
+  test "return organization and child ids for non-admin user" do
+    as_user :one do
+      in_taxonomy :organization1 do
+        assert User.current.organizations << Organization.current
+        assert child = Organization.create!(:name => 'child organization', :parent_id => Organization.current.id)
+        assert_equal [Organization.current.id, child.id].sort, User.current.organization_and_child_ids
+      end
+    end
+  end
+
+#  Uncomment after users get access to children taxonomies of their current taxonomies.
+#
+#  test 'default taxonomy inclusion validator takes into account inheritance' do
+#    inherited_location     = Location.create(:parent => Location.first, :name => 'inherited_loc')
+#    inherited_organization = Organization.create(:parent => Organization.first, :name => 'inherited_org')
+#    users(:one).update_attribute(:locations, [Location.first])
+#    users(:one).update_attribute(:organizations, [Organization.first])
+#    users(:one).default_location     = Location.find_by_name('inherited_loc')
+#    users(:one).default_organization = Organization.find_by_name('inherited_org')
+#
+#    assert users(:one).valid?
+#  end
 
 end
