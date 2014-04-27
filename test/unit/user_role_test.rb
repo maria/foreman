@@ -18,8 +18,8 @@ class UserRoleTest < ActiveSupport::TestCase
     user_role        = FactoryGirl.create :user_user_role, :owner => user
     cached_user_roles = user.cached_user_roles
 
-    assert_equal user_role.role, cached_user_roles.second.role
-    assert_equal user.roles.first, cached_user_roles.first.role
+    assert cached_user_roles.include?(user_role.role)
+    assert cached_user_roles.include?(user.roles)
   end
 
   test "cache usergroup roles" do

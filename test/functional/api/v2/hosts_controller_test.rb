@@ -104,7 +104,7 @@ class Api::V2::HostsControllerTest < ActionController::TestCase
   test "should allow access to a host out of users hosts scope" do
     setup_user 'view', 'hosts', "owner_type = User and owner_id = #{users(:restricted).id}", :restricted
     get :show, { :id => hosts(:one).to_param }
-    assert_response 200
+    assert_response :success
   end
 
   test "should list a host out of users hosts scope" do
@@ -132,7 +132,7 @@ class Api::V2::HostsControllerTest < ActionController::TestCase
   test "should show status of hosts out of users hosts scope" do
     setup_user 'view', 'hosts', "owner_type = User and owner_id = #{users(:restricted).id}", :restricted
     get :status, { :id => hosts(:one).to_param }
-    assert_response 200
+    assert_response :success
   end
 
   def set_remote_user_to user
