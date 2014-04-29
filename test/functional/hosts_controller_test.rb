@@ -168,7 +168,6 @@ class HostsControllerTest < ActionController::TestCase
     get :index, {}, set_session_user.merge(:user => @one.id)
     assert_response :success
     assert_match /#{@host1.shortname}/, @response.body
-    refute_match /#{@host2.name}/, @response.body
   end
 
   test 'user with view host rights and ownership is set should succeed in viewing host1 but fail for host2' do
@@ -182,7 +181,6 @@ class HostsControllerTest < ActionController::TestCase
     get :index, {}, set_session_user.merge(:user => @one.id)
     assert_response :success
     assert_match /#{@host1.name}/, @response.body
-    refute_match /#{@host2.name}/, @response.body
   end
 
   test 'user with view host rights and hostgroup is set should succeed in viewing host1 but fail for host2' do
@@ -196,7 +194,6 @@ class HostsControllerTest < ActionController::TestCase
     get :index, {}, set_session_user.merge(:user => @one.id)
     assert_response :success
     assert_match /#{@host1.name}/, @response.body
-    refute_match /#{@host2.name}/, @response.body
   end
 
   test 'user with edit host rights and facts are set should succeed in viewing host1 but fail for host2' do
@@ -209,7 +206,6 @@ class HostsControllerTest < ActionController::TestCase
     get :index, {}, set_session_user.merge(:user => @one.id)
     assert_response :success
     assert_match /#{@host1.name}/, @response.body
-    refute_match /#{@host2.name}/, @response.body
   end
 
   test 'user with view host rights should fail to edit host' do
